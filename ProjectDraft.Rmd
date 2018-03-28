@@ -1,13 +1,18 @@
 ---
-title: "Soccer, Alcohol, and Trump"
+title: "Happines,Soccer, Alcohol, and Trump"
 author: "Alexander Chang"
 date: "March 27, 2018"
 output: html_document
 ---
+```{r myDataSummary}
+load("C:/Users/Alex Chang/Documents/GitHub/BigDataProject/mydata.RData")
+```
 
-It's very common to enjoy a drink every now and then.  Some people more than others, and some countries more than others.  Today I will perform some fun statistics on the combination of four different data sets that observes happiness, alcohol consumption, fifa #(soccer) participation, and their approval of our esteemed leader, President Trump. 
 
-#####We Begin by performing a merge of all the datasets into one big dataset 
+
+###It's very common to enjoy a drink every now and then.  Some people more than others, and some countries more than others.  Today I will perform some fun statistics on the combination of four different data sets that observes happiness, alcohol consumption, fifa #(soccer) participation, and their approval of our esteemed leader, President Trump. 
+
+###We Begin by performing a merge of all the datasets into one big dataset 
 
 ```{r}
 merge1 <- merge(happy, drinks, by="Country")
@@ -17,7 +22,7 @@ TrumpMerge <- merge(merge2, Trump, by = "Country", all = TRUE)
 ```
 
 
-#####Let's observe if there are correlations hidden within this database by producing a correlation matrix 
+###Let's observe if there are correlations hidden within this database by producing a correlation matrix 
 
 ```{r}
 library(Hmisc)
@@ -25,7 +30,7 @@ corr1 <- rcorr(as.matrix(mergeframe))
 corr1
 ```
 
-#####It's important to note that this correlation matrix does not include the Trump data as there are too many missing values, and the country variable has been removed for the time being. Now let's focus on making the matrix more digestable by flattening the values 
+###It's important to note that this correlation matrix does not include the Trump data as there are too many missing values, and the country variable has been removed for the time being. Now let's focus on making the matrix more digestable by flattening the values.  For the sake of viewing, I've elected to only show the top 50 observations. 
 
 ```{r}
 flattenCorrMatrix <- function(cormat, pmat) {
@@ -38,18 +43,95 @@ flattenCorrMatrix <- function(cormat, pmat) {
     )
 }
 library(Hmisc)
-flattenCorrMatrix(corr1$r, corr1$P)
+flatdata<- flattenCorrMatrix(corr1$r, corr1$P)
+head(flatdata, n=50)
 ```
 
-Based off of a basic correlation matrix there is a plausible relationship between the amount of alcohol consumed and the various metrics of happiness.  In particular, total beer and wine consumption by a country seems to score well with happiness index and the related variables such as GDP per capita, and family happiness. 
+###Based off of a basic correlation matrix there is a plausible relationship between the amount of alcohol consumed and the various metrics of happiness.  In particular, total beer and wine consumption by a country seems to score well with happiness index and the related variables such as GDP per capita, and family happiness. Unfortunately we see now relationship between alcohol consumption of any sort and its ability to affect soccer fandom in a country.  This shouldn't be surprising because soccer is a universal sport that penetrates cultures that largely abstain from drinking.   What could be interesting is conducted an analysis by looking at different country regions, but let's get back to that later.  First let's see what we can dig up about beer and wine consumption and their effect upon a country's happiness score. 
 
-Let's see compare the beer and wine consumption for the top 10 happiest and least happy countries, starting with beer. 
-
-So let's sort the data 
+###Let's see compare the beer and wine consumption for the top 10 happiest and least happy countries, starting with beer. First, let's sort the data. 
 
 
 ```{r}
 sortHappy <- TrumpMerge[order(TrumpMerge$Happiness.Rank),]
+sortunhappy <- TrumpMerge[order(-TrumpMerge$Happiness.Rank),]
+```
+Now let take the top 5 of the happiest and unhappiest countries 
+```{r}
+top10happy <- sortHappy[1:10,]
+top10unhappy <- sortunhappy[1:10,]
+```
+Let's take a look at their beer consumption (cans of beer per year per capita), using my favorite theme!
+```{r}
+library(ggthemes)
+HappyBeer <- ggplot(top10happy, aes(Country, beer_servings, fill = Country)) + geom_col()  +  theme_fivethirtyeight() + theme(axis.text.x = element_blank(),) + ggtitle("Bar Chart of Top 10 Most Happy Country's Beer Consumption") + xlab("") + ylab("Annual Cans of beer consumed per capita")
+HappyBeer + theme(
+plot.title = element_text(color="red", size=14, face="bold.italic")
+)
+
+SadBeer<- ggplot(top10unhappy, aes(Country, beer_servings, fill = Country)) + geom_col()  + scale_color_fivethirtyeight("Country") + theme_fivethirtyeight() + theme(axis.text.x = element_blank(),) + ggtitle("Bar Chart of Top 10 Least Happy Country's Beer Consumption")
+SadBeer + theme(
+plot.title = element_text(color="red", size=14, face="bold.italic")
+)
+```
+--###Certainly seems like there is a large disparity of happiness between countries that drink and countries that do not drink a large amount of beer.  However that could also be due to gdp.  What if we do the same with countries more from the middle of the pack?  Let's find out. 
+
+A good strategy could be to find where the first and third quartiles are in the happiness scale and fish 10 countries from there. 
+
+###First let's check the IQR for the Happiness Index
+```{r}
+summary(TrumpMerge$Happiness.Score)
 ```
 
+###With theses quartiles we're looking at happiness ranks of 40-50 for the 3rd quartile and 100-110 for the 1st, so let's see if the beer consumption is markedly higher for the happier countries.  
 
+
+###Let's go ahead and subset the data we wish to have for this bit of data visualization
+```{r}
+Q3Happy <- sortHappy[40:50,]
+Q1UnHappy <- sortHappy[100:110,]
+```
+###Now let's observe the bar graphs side by side 
+```{r}
+Q3Beer <- ggplot(Q3Happy, aes(Country, beer_servings, fill = Country)) + geom_col()  +  theme_fivethirtyeight() + theme(axis.text.x = element_blank(),) + ggtitle("Bar Chart of Upper Quartile Most Happy Country's Beer Consumption") + xlab("") + ylab("Annual Cans of beer consumed per capita")
+Q3Beer + theme(
+plot.title = element_text(color="red", size=14, face="bold.italic")
+)
+
+Q1Beer<- ggplot(Q1UnHappy, aes(Country, beer_servings, fill = Country)) + geom_col()  + scale_color_fivethirtyeight("Country") + theme_fivethirtyeight() + theme(axis.text.x = element_blank(),) + ggtitle("Bar Chart of Lower Quartile of Least Happy Country's Beer Consumption")
+Q1Beer + theme(
+plot.title = element_text(color="red", size=14, face="bold.italic")
+)
+```
+--###Overall, we still see that the happier countries consume more beer than the unhappy countries, but now we're seeing countries that go against that overal relationship.  What could be best moving forward and conducting a crude regressional analysis to observe if statistically speaking, we see a lienar relationship between annual per capita beer + wine consumption versus a country's happiness score.  Afterwards we'll starting digging into the plausibility of a relationship between these co-variates and Trump's approval.
+
+###Let's first visual the relationship through a scatter plot diagram of Happiness vs Beer (Annual cans of beer consumed per capita)
+
+```{r}
+scatter.smooth(x=TrumpMerge$Happiness.Score, y=TrumpMerge$beer_servings, main="Happiness Score vs Annual Cans of Beer per Capita")  # scatterplot
+```
+
+###Now let's do the same with Happiness vs Wine consumption (annnual glasses of wine consumed per capita)
+```{r}
+scatter.smooth(x=TrumpMerge$Happiness.Score, y=TrumpMerge$wine_servings, main="Happiness.Score Vs Annual glasses of wine per capita")  # scatterplot
+```
+
+###From what it appears there is the plausibility of a linear relationship, let's run the actual regression. 
+```{r}
+linearbeer <- lm(Happiness.Score ~ beer_servings, data = TrumpMerge)
+linearwine <- lm(Happiness.Score ~ wine_servings, data = TrumpMerge)
+summary(linearbeer)
+summary(linearwine)
+```
+###Very interesting, both are significant.  According to the beer model, we see that for every can of beer consumed per capita during a year, it increases the happiness score of a country 0.005 points.  If we multiply that by 100, we see that every 100 additional beers consumed per capital during a year increases a country's happiness score by 0.5.  Considering that the range is between 3 and 7, this is pretty significant.  It would also appear that wine is also more effective at influencing the happiness score, with a 0.6 gain per 100 glasses consumed annually per capita.  
+
+###This should make sense though, a large component of a country's happiness score is its GDP per capita and this influences the ability of a country's citizens to purchase alcohol, especially affordable forms such as beer and wine.  It's also important to consider the fact that this data is taken from legal sales of alcohol.  Countries with less availalbe monetary capital rely more on illegal forms of alcohol for consumption (WHO 2011).  The "Global status report on alcohol and health" produced by the WHO also goes into greater detail in describing this phenomenon.   Noticed earlier how we saw that most of the countries that were at the lower tiers of happiness index had such low alcohol consumption were developing nations: 
+```{r}
+SadBeer + theme(
+plot.title = element_text(color="red", size=14, face="bold.italic")
+)
+Q1Beer + theme(
+plot.title = element_text(color="red", size=14, face="bold.italic")
+)
+```
+###According to the report, countries in Africa and South East Asia regions typically have citizens make their own form of alcohol that could be distributed in an informal market setting which would reduce the official consumption numbers used in this data set. This dataset also, of course, favors countries with stronger surveillance capabilities.  Countries above such as Haiti have used their resources to surveillance of communicable diseases and vaccination over point of sales data (CDC 2013).  
