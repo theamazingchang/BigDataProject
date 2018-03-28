@@ -1,0 +1,55 @@
+---
+title: "Soccer, Alcohol, and Trump"
+author: "Alexander Chang"
+date: "March 27, 2018"
+output: html_document
+---
+
+It's very common to enjoy a drink every now and then.  Some people more than others, and some countries more than others.  Today I will perform some fun statistics on the combination of four different data sets that observes happiness, alcohol consumption, fifa #(soccer) participation, and their approval of our esteemed leader, President Trump. 
+
+#####We Begin by performing a merge of all the datasets into one big dataset 
+
+```{r}
+merge1 <- merge(happy, drinks, by="Country")
+merge2 <- merge(merge1, fifa, by="Country", all = FALSE)
+TrumpMerge <- merge(merge2, Trump, by = "Country", all = TRUE)
+
+```
+
+
+#####Let's observe if there are correlations hidden within this database by producing a correlation matrix 
+
+```{r}
+library(Hmisc)
+corr1 <- rcorr(as.matrix(mergeframe))
+corr1
+```
+
+#####It's important to note that this correlation matrix does not include the Trump data as there are too many missing values, and the country variable has been removed for the time being. Now let's focus on making the matrix more digestable by flattening the values 
+
+```{r}
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+    )
+}
+library(Hmisc)
+flattenCorrMatrix(corr1$r, corr1$P)
+```
+
+Based off of a basic correlation matrix there is a plausible relationship between the amount of alcohol consumed and the various metrics of happiness.  In particular, total beer and wine consumption by a country seems to score well with happiness index and the related variables such as GDP per capita, and family happiness. 
+
+Let's see compare the beer and wine consumption for the top 10 happiest and least happy countries, starting with beer. 
+
+So let's sort the data 
+
+
+```{r}
+sortHappy <- TrumpMerge[order(TrumpMerge$Happiness.Rank),]
+```
+
+
