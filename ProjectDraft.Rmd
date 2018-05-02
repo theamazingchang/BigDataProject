@@ -1,20 +1,27 @@
 ---
-title: "Happines,Soccer, Alcohol, and Trump (Milestone2)"
+title: "Happines,Soccer, Alcohol, and Trump"
 author: "Alexander Chang"
-date: "March 27, 2018"
-output: html_document
+date: "May 2nd, 2018"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
 ---
-```{r myDataSummary, results='hide'}
-  library(printr)
+```{r myDataSummary, include=FALSE, results='hide'}
+library(printr)
+library(gplots)
+library(ggplot2)
 load("C:/Users/Alex Chang/Documents/GitHub/BigDataProject/mydata.RData")
 library(Hmisc)
 ```
 
-#Github Respository: 
+####Github Respository: https://github.com/theamazingchang/BigDataProject
 
-###It's very common to enjoy a drink every now and then.  Some people more than others, and some countries more than others.  Today I will perform some fun statistics on the combination of four different data sets that observes happiness, alcohol consumption, fifa (soccer) participation, and their approval of our esteemed leader, President Trump. 
+#Introduction
 
-###We begin by performing a merge of all the datasets into one big dataset 
+It's very common to enjoy a drink every now and then.  Some people more than others, and some countries more than others.  Today I will perform some fun statistics on the combination of four different data sets that observes happiness, alcohol consumption, fifa (soccer) participation, and their approval of our esteemed leader, President Trump. 
+
+We begin by performing a merge of all the datasets into one big dataset 
 
 ```{r}
 merge1 <- merge(happy, drinks, by="Country")
@@ -24,14 +31,14 @@ TrumpMerge <- merge(merge2, Trump, by = "Country", all = TRUE)
 ```
 
 
-###Let's observe if there are correlations hidden within this database by producing a correlation matrix 
+Let's observe if there are correlations hidden within this database by producing a correlation matrix, for the sake of page spacing I've opted to hide the matrix. 
 
-```{r}
+```{r include=FALSE}
 corr1 <- rcorr(as.matrix(mergeframe))
 corr1
 ```
 
-###It's important to note that this correlation matrix does not include the Trump data as there are too many missing values, and the country variable has been removed for the time being. Now let's focus on making the matrix more digestable by flattening the values.  For the sake of viewing, I've elected to only show the top 50 observations. 
+It's important to note that this correlation matrix does not include the Trump data as there are too many missing values, and the country variable has been removed for the time being. Now let's focus on making the matrix more digestible by flattening the values.  For the sake of viewing, I've elected to only show the top 50 observations. 
 
 ```{r}
 flattenCorrMatrix <- function(cormat, pmat) {
@@ -48,10 +55,12 @@ flatdata<- flattenCorrMatrix(corr1$r, corr1$P)
 head(flatdata, n=50)
 ```
 
-###Based off of a basic correlation matrix there is a plausible relationship between the amount of alcohol consumed and the various metrics of happiness.  In particular, total beer and wine consumption by a country seems to score well with happiness index and the related variables such as GDP per capita, and family happiness. Unfortunately we see now relationship between alcohol consumption of any sort and its ability to affect soccer fandom in a country.  This shouldn't be surprising because soccer is a universal sport that penetrates cultures that largely abstain from drinking.   What could be interesting is conducted an analysis by looking at different country regions, but let's get back to that later.  First let's see what we can dig up about beer and wine consumption and their effect upon a country's happiness score. 
+Based off of a basic correlation matrix there is a plausible relationship between the amount of alcohol consumed and the various metrics of happiness.  In particular, total beer and wine consumption by a country seems to score well with happiness index and the related variables such as GDP per capita, and family happiness. Unfortunately we see now relationship between alcohol consumption of any sort and its ability to affect soccer fandom in a country.  This shouldn't be surprising because soccer is a universal sport that penetrates cultures that largely abstain from drinking.   What could be interesting is conducted an analysis by looking at different country regions, but let's get back to that later.  First let's see what we can dig up about beer and wine consumption and their effect upon a country's happiness score. 
 
-###Let's see compare the beer and wine consumption for the top 10 happiest and least happy countries, starting with beer. First, let's sort the data. 
 
+#Analysis
+
+Let's see compare the beer and wine consumption for the top 10 happiest and least happy countries, starting with beer. First, let's sort the data. 
 
 ```{r}
 sortHappy <- TrumpMerge[order(TrumpMerge$Happiness.Rank),]
@@ -59,7 +68,7 @@ sortunhappy <- TrumpMerge[order(-TrumpMerge$Happiness.Rank),]
 ```
 
 
-####Now let take the top 5 of the happiest and unhappiest countries 
+Now let take the top 10 of the happiest and unhappiest countries 
 
 
 ```{r}
@@ -68,7 +77,9 @@ top10unhappy <- sortunhappy[1:10,]
 ```
 
 
-####Let's take a look at their beer consumption (cans of beer per year per capita), using my favorite theme!
+##Beer Consumption
+
+Let's take a look at their beer consumption (cans of beer per year per capita), using my favorite theme!
 
 
 ```{r}
@@ -85,24 +96,31 @@ plot.title = element_text(color="red", size=14, face="bold.italic")
 ```
 
 
-####Certainly seems like there is a large disparity of happiness between countries that drink and countries that do not drink a large amount of beer.  However that could also be due to gdp.  What if we do the same with countries more from the middle of the pack?  Let's find out. 
+Certainly seems like there is a large disparity of happiness between countries that drink and countries that do not drink a large amount of beer.  However that could also be due to GDP.  What if we do the same with countries more from the middle of the pack?  Let's find out. 
 
-####A good strategy could be to find where the first and third quartiles are in the happiness scale and fish 10 countries from there. 
+A good strategy could be to find where the first and third quartiles are in the happiness scale and fish 10 countries from there. 
 
-####First let's check the IQR for the Happiness Index
+First let's check the IQR for the Happiness Index
+
 ```{r}
 summary(TrumpMerge$Happiness.Score)
 ```
 
-####With theses quartiles we're looking at happiness ranks of 40-50 for the 3rd quartile and 100-110 for the 1st, so let's see if the beer consumption is markedly higher for the happier countries.  
+With theses quartiles we're looking at happiness ranks of 40-50 for the 3rd quartile and 100-110 for the 1st, so let's see if the beer consumption is markedly higher for the happier countries.  
 
 
-####Let's go ahead and subset the data we wish to have for this bit of data visualization
+Let's go ahead and subset the data we wish to have for this bit of data visualization
+
+
 ```{r}
 Q3Happy <- sortHappy[40:50,]
 Q1UnHappy <- sortHappy[100:110,]
 ```
-####Now let's observe the bar graphs side by side 
+
+
+Now let's observe the bar graphs side by side 
+
+
 ```{r}
 Q3Beer <- ggplot(Q3Happy, aes(Country, beer_servings, fill = Country)) + geom_col()  +  theme_fivethirtyeight() + theme(axis.text.x = element_blank(),) + ggtitle("Bar Chart of Upper Quartile Most Happy Country's Beer Consumption") + xlab("") + ylab("Annual Cans of beer consumed per capita")
 Q3Beer + theme(
@@ -115,21 +133,62 @@ plot.title = element_text(color="red", size=14, face="bold.italic")
 )
 ```
 
+##Wine Consumption
 
-####Overall, we still see that the happier countries consume more beer than the unhappy countries, but now we're seeing countries that go against that overal relationship.  What could be best moving forward and conducting a crude regressional analysis to observe if statistically speaking, we see a lienar relationship between annual per capita beer + wine consumption versus a country's happiness score.  Afterwards we'll starting digging into the plausibility of a relationship between these co-variates and Trump's approval.
+Now let's take a look at this with Wine consumption of a country. 
+First we look again at the top 10 happiest and saddest countries by wine consumption
 
-####Let's first visual the relationship through a scatter plot diagram of Happiness vs Beer (Annual cans of beer consumed per capita)
+```{r}
+HappyWine <- ggplot(top10happy, aes(Country, wine_servings, fill = Country)) + geom_col()  +  theme_fivethirtyeight() + theme(axis.text.x = element_blank(),) + ggtitle("Bar Chart of Top 10 Most Happy Country's Wine Consumption") + xlab("") + ylab("Annual glasses of wine consumed per capita")
+HappyWine + theme(
+plot.title = element_text(color="red", size=14, face="bold.italic")
+)
+
+SadWine<- ggplot(top10unhappy, aes(Country, wine_servings, fill = Country)) + geom_col()  + scale_color_fivethirtyeight("Country") + theme_fivethirtyeight() + theme(axis.text.x = element_blank(),) + ggtitle("Bar Chart of Top 10 Least Happy Country's Wine Consumption")
+SadWine + theme(
+plot.title = element_text(color="red", size=14, face="bold.italic")
+)
+```
+
+Looks like there is significantly less wine consumption overall, but this is especially true in less happy countries.  Let's try this with the quartiles and see if this disparity still exists.  
+
+
+```{r}
+Q3Wine <- ggplot(Q3Happy, aes(Country, wine_servings, fill = Country)) + geom_col()  +  theme_fivethirtyeight() + theme(axis.text.x = element_blank(),) + ggtitle("Bar Chart of Upper Quartile Most Happy Country's Wine Consumption") + xlab("") + ylab("Annual Cans of beer consumed per capita")
+Q3Wine + theme(
+plot.title = element_text(color="red", size=14, face="bold.italic")
+)
+
+Q1Wine <- ggplot(Q1UnHappy, aes(Country, wine_servings, fill = Country)) + geom_col()  + scale_color_fivethirtyeight("Country") + theme_fivethirtyeight() + theme(axis.text.x = element_blank(),) + ggtitle("Bar Chart of Lower Quartile of Least Happy Country's Wine Consumption")
+Q1Wine + theme(
+plot.title = element_text(color="red", size=14, face="bold.italic")
+)
+```
+
+It seems as though we're seeing that for these middle-of-the-pack countries they, on average, drink less wine than they do beer.  Perhaps beer is more pervasive amongst world cultures than wine due to the materials needed.  After all, beer simply needs wheat which is much easier to produce in different soil types than wine grapes.  
+
+
+Overall, we still see that the happier countries consume more beer and wine than the unhappy countries, but now we're seeing countries that go against that overall relationship.  What could be best moving forward and conducting a crude regressional analysis to observe if statistically speaking, we see a linear relationship between annual per capita beer + wine consumption versus a country's happiness score.  Afterwards we'll starting digging into the plausibility of a relationship between these co-variates and Trump's approval.
+
+
+##Regression of Happiness vs Beer+Wine Consumption
+
+Let's first visual the relationship through a scatter plot diagram of Happiness vs Beer (Annual cans of beer consumed per capita)
 
 ```{r}
 scatter.smooth(x=TrumpMerge$Happiness.Score, y=TrumpMerge$beer_servings, main="Happiness Score vs Annual Cans of Beer per Capita")  # scatterplot
 ```
 
-####Now let's do the same with Happiness vs Wine consumption (annnual glasses of wine consumed per capita)
+Now let's do the same with Happiness vs Wine consumption (annual glasses of wine consumed per capita)
+
 ```{r}
 scatter.smooth(x=TrumpMerge$Happiness.Score, y=TrumpMerge$wine_servings, main="Happiness.Score Vs Annual glasses of wine per capita")  # scatterplot
 ```
 
-####From what it appears there is the plausibility of a linear relationship, let's run the actual regression. 
+
+From what it appears there is the plausibility of a linear relationship, let's run the actual regression. 
+
+
 ```{r}
 linearbeer <- lm(Happiness.Score ~ beer_servings, data = TrumpMerge)
 linearwine <- lm(Happiness.Score ~ wine_servings, data = TrumpMerge)
@@ -137,9 +196,10 @@ summary(linearbeer)
 summary(linearwine)
 ```
 
-####Very interesting, both are significant.  According to the beer model, we see that for every can of beer consumed per capita during a year, it increases the happiness score of a country 0.005 points.  If we multiply that by 100, we see that every 100 additional beers consumed per capital during a year increases a country's happiness score by 0.5.  Considering that the range is between 3 and 7, this is pretty significant.  It would also appear that wine is also more effective at influencing the happiness score, with a 0.6 gain per 100 glasses consumed annually per capita.  
+Very interesting, both are significant.  According to the beer model, we see that for every can of beer consumed per capita during a year, it increases the happiness score of a country 0.005 points.  If we multiply that by 100, we see that every 100 additional beers consumed per capital during a year increases a country's happiness score by 0.5.  Considering that the range is between 3 and 7, this is pretty significant.  It would also appear that wine is also more effective at influencing the happiness score, with a 0.6 gain per 100 glasses consumed annually per capita.  
 
-####This should make sense though, a large component of a country's happiness score is its GDP per capita and this influences the ability of a country's citizens to purchase alcohol, especially affordable forms such as beer and wine.  It's also important to consider the fact that this data is taken from legal sales of alcohol.  Countries with less availalbe monetary capital rely more on illegal forms of alcohol for consumption (WHO 2011).  The "Global status report on alcohol and health" produced by the WHO also goes into greater detail in describing this phenomenon.   Noticed earlier how we saw that most of the countries that were at the lower tiers of happiness index had such low alcohol consumption were developing nations: 
+This should make sense though, a large component of a country's happiness score is its GDP per capita and this influences the ability of a country's citizens to purchase alcohol, especially affordable forms such as beer and wine.  It's also important to consider the fact that this data is taken from legal sales of alcohol.  Countries with less available monetary capital rely more on illegal forms of alcohol for consumption (WHO 2011).  The "Global status report on alcohol and health" produced by the WHO also goes into greater detail in describing this phenomenon.   Noticed earlier how we saw that most of the countries that were at the lower tiers of happiness index had such low alcohol consumption were developing nations: 
+
 ```{r}
 SadBeer + theme(
 plot.title = element_text(color="red", size=14, face="bold.italic")
@@ -150,17 +210,21 @@ plot.title = element_text(color="red", size=14, face="bold.italic")
 ```
 
 
-####According to the report, countries in Africa and South East Asia regions typically have citizens make their own form of alcohol that could be distributed in an informal market setting which would reduce the official consumption numbers used in this data set. This dataset also, of course, favors countries with stronger surveillance capabilities.  Countries above such as Haiti have used their resources to surveillance of communicable diseases and vaccination over point of sales data (CDC 2013). 
+According to the report, countries in Africa and South East Asia regions typically have citizens make their own form of alcohol that could be distributed in an informal market setting which would reduce the official consumption numbers used in this data set. This dataset also, of course, favors countries with stronger surveillance capabilities.  Countries above such as Haiti have used their resources to surveillance of communicable diseases and vaccination over point of sales data (CDC 2013). 
 
-####Maybe if we divide the global regions up we could see the differences in both happiness and beer/wine consumption that could explain this behavior.  Maybe one region is accounting for more of this effect than others.  Let's explore this. 
+Maybe if we divide the global regions up we could see the differences in both happiness and beer/wine consumption that could explain this behavior.  Maybe one region is accounting for more of this effect than others.  Let's explore this. 
 
-####First we need to assign the countries to a region, for this we will need to merge a list of countries and their respective region.  For the purpose of this analysis we will be using a list provided by the International Telecommunications Union (ITU 2018). 
+First we need to assign the countries to a region, for this we will need to merge a list of countries and their respective region.  For the purpose of this analysis we will be using a list provided by the International Telecommunications Union (ITU 2018). 
+
 
 ```{r}
 final <- merge(TrumpMerge, region, by = "Country")
 ```
 
-####Let's display the happiness and beerconsumption by region through a colored scatterplot to get a better idea where each region falls within the greater distribution of our data 
+
+##Analysis by Reigion
+
+Let's display the happiness and beer +wine consumption by region through a colored scatterplot to get a better idea where each region falls within the greater distribution of our data.  First we will start with beer:
 
 
 ```{r}
@@ -169,4 +233,136 @@ qplot(Happiness.Score, beer_servings, colour = Region,
 ```
 
 
-####Well it sems that the countries that drinks beer often and are happier are all typically found in the region of Europe, however, we do see some Latin American countries driving this statstical relationship as well.  
+Well it seems that the countries that drinks beer often and are happier are all typically found in the region of Europe, however, we do see some Latin American countries driving this statistical relationship as well.  Maybe we should look at this this relationship per region.  Let's break them down starting by region.  
+
+
+
+```{r}
+EuropeFinal <-subset(final,Region %in% 'Europe')
+scatter.smooth(x=EuropeFinal$Happiness.Score, y=EuropeFinal$beer_servings, main="Happiness vs Beer in Europe")
+```
+
+The trend line suggests there is a clear relationship until about 250 beers, then we see diminishing returns.  Then again Europe is a country with a healthy mix of wine, spirit, and beer sales, but we see that they are indeed, a large part of the overall trend we saw in the aggregate scatter plot.  We see that the happiest countries that had high beer consumption were from Europe, Asia, and North America.  Let's look at Asia next and omit North America as the only country with available data is Canada. 
+
+```{r}
+AsiaFinal <-subset(final,Region %in% 'Asia & Pacific')
+scatter.smooth(x=AsiaFinal$Happiness.Score, y=AsiaFinal$beer_servings, main="Happiness vs Beer in Asia & Pacific Region")
+```
+
+This trend line also is increasingly positive and we see why these two regions provide a lot of the statistical power behind the relationship between beer and happiness.  On the opposite end we see that the least happy countries that drink very little beer are in Africa.  Of course, GDP is one of the factors of the happiness index and thus it is not surprising to find Africa near the bottom.  Perhaps, this region adds onto the trend as well. Let's observe the trend line. 
+
+
+```{r}
+AfricaFinal <-subset(final,Region %in% 'Africa')
+scatter.smooth(x=AfricaFinal$Happiness.Score, y=AfricaFinal$beer_servings, main="Happiness vs Beer in Africa Region")
+```
+
+As predicted, Africa as a region does not have a significant positive association between Happiness and the total amount of beer consumed.  Thus far it would seem that the Europe and Asia are the two biggest drivers of this trend.  Let's final out if the final two regions with a sample size larger than 15 (Arab States and Latin/South America)
+
+```{r}
+ArabFinal <-subset(final,Region %in% 'Arab States')
+LatinFinal <- subset(final, Region %in% 'South/Latin America')
+scatter.smooth(x=ArabFinal$Happiness.Score, y=ArabFinal$beer_servings, main="Happiness vs Beer in Arab Region")
+scatter.smooth(x=LatinFinal$Happiness.Score, y=LatinFinal$beer_servings, main="Happiness vs Beer in Latin Region")
+```
+
+We see that the Arab Region does not have any trend on the influence of beer consumption upon Happiness and that the Latin region has a small trend line that mostly driven by the presence of a single outlying point.  
+
+We've now learned that the trend between happiness and beer consumption is strongest in Europe and Asia, weak in Latin America, and weakest in Africa and the Arab States.  
+
+Now let's do the same for wine: 
+
+```{r}
+qplot(Happiness.Score, wine_servings, colour = Region, 
+   data = final)
+```
+
+Wow, it is very clear that Europe, Asia, and South/Latin America is leading this trend whereas the Arab States and Africa all do not drink much wine.  Let's go ahead and view this scatter plot for the three regions. 
+
+```{r}
+scatter.smooth(x=EuropeFinal$Happiness.Score, y=EuropeFinal$wine_servings, main="Happiness vs Wine in Europe Region")
+scatter.smooth(x=AsiaFinal$Happiness.Score, y=AsiaFinal$wine_servings, main="Happiness vs Wine in Asia Region")
+scatter.smooth(x=LatinFinal$Happiness.Score, y=LatinFinal$wine_servings, main="Happiness vs Wine in Latin/South America Region")
+```
+
+Interesting,  I guess the trend between wine an happiness is weaker here.  It could possibly be that no region contributes to the relationship and it is only by aggregating all the data that we see the significant estimate produced by our linear model.  
+
+
+This is good to know because now when we try to compare Happiness, beer consumption and wine consumption to Trump's approval, we can have an idea if this sort of regionality still exists.  
+
+##Trump vs Happiness and Alcohol
+
+Let's isolate only complete observations that have approval ratings for Trump, to do this a bit of data cleaning is necessary.
+
+```{r}
+final$X3 <- NULL
+final2 <- final[complete.cases(final), ]
+```
+
+With our dataset in hand let's compare the net approval rating of the 34 remaining countries compared to their overall happiness.  
+
+```{r}
+TrumpHappy <-  lm(net_approval ~ Happiness.Score, data = final2)
+summary(TrumpHappy)
+```
+
+Wow, well as it turns out, the Happier the country, the less likely it approves of trump.  Let's quickly explore if other variables in our dataset is predictive of this, particularly alcohol consumption. 
+
+```{r}
+library(MASS)
+TrumpTest <- lm(net_approval ~ Happiness.Score + beer_servings + wine_servings + spirit_servings + total_litres_of_pure_alcohol, data=final2)
+step <- stepAIC(TrumpTest, direction="both")
+step$anova
+```
+
+
+Interesting, it seems as though while the other alcohols do not have significance in this model, wine consumption was kept.  Thus, both a country's happiness and its wine consumption is telling of whether they approve of Trump.  Let's go ahead and slim that into a model.
+
+
+```{r}
+library(DAAG)
+TrumpWine <- lm(net_approval ~ Happiness.Score + wine_servings, data=final2)
+summary(TrumpWine)
+```
+Interesting, the inclusion of wine dampens the estimate of the Happiness Score, but both are still significant and show that the more wine a country drinks and the more happy it is, the less that country approves of Trump.  Let's visualize this relationship.  
+
+```{r}
+library(scatterplot3d)
+attach(final2)
+scatterplot3d(Happiness.Score,wine_servings, net_approval, pch=16, highlight.3d=TRUE,
+  type="h" , main="3D Scatterplot")
+
+```
+
+This may be slightly difficult to unpack, what is important is that those with longer vertical drop line are concentrated in the left end of the x-axis and in the closer area of the z-axis.  As we move farther away on the z-axis and further right on the x-axis the drop lines become shorter, indicating that the approval lowers, this visualization corresponds with the findings in the model. 
+
+Let's finish this off with a mapped visual of net approval, we see that European, North American, and Latin American countries have the lowest approval of Trump, whereas countries with lower GDP per capita and lower happiness such as Africa and South East Asia hold a better opinion of his leadership.  
+
+```{r}
+library(rworldmap)
+
+#join data to a map
+gtdMap <- joinCountryData2Map( final2, 
+                               nameJoinColumn="Country", 
+                               joinCode="NAME" )
+
+mapDevice('x11') #create a world shaped window
+
+#plot the map
+mapCountryData( gtdMap, 
+                nameColumnToPlot='net_approval', 
+                catMethod='pretty', 
+                numCats=20 )
+```
+
+#Discussion
+
+This investigation has produced three concrete findings being 1) Countries that have a higher happiness score tend to drink more wine and beer, 2) Beer consumption and happiness can depend on the region that the country is a part of with wine consumption's relation to wine being less reliant on region, and 3) Countries that have a higher happiness score tend to have a lower net approval rating of President Trump, and those that drink more wine also tend to have a lesser opinion of Trump.  
+
+These results shouldn't be too surprising, one of the most important variables used in calculated a country's happiness score is its GDP per capita.  With that spending power comes a greater capacity to purchase libations such as wine and beer.  Beer is seemingly more universal, with its consumption in cans per capita being ahead of wine glasses per capita in every country.  What is curious is that wine's affect on happiness was technically stronger than beers, however there was no clear region that demonstrated this trend.  Perhaps in a region that produces wine such as Europe and Latin America, wealth is less of a barrier to its consumption and therefore is not impacted by GDP per capita.  
+
+Turning the scope of the analysis to Trump's approval shows results that, again, should not be surprising.  Countries with less GDP per capita and thereby, happiness, had a better opinion of our commander in chief, although most of the views are negative.  It is clear that countries that have trade interests with America such as those in the European Union, Latin America, Canada, and Australia all have a lower net approval rating.  These are also key defense allies and those that have a historical relationship with the USA that has mostly been fortuitous.  However, the external validity of this finding would be questionable given the low number of countries that reported an approval rating to the poll that this data was drawn from (n=38). However, given the strong statistical value, it would be highly plausible for the trend to continue if more countries were included. 
+
+#Summary
+
+Overall, this analysis sought to achieve two outcomes 1) see whether drinking more alcohol made countries happier, and if that happiness affect a nation's approval of President Trump and 2) Allow for an opportunity for the author to practice R-visualization tools in order to practice the skill set.  The results rebuff the first outcome, and the successful production of graphs and charts allowed for the data to be visualized and presented in a variety of formats that allowed for better understanding of trends.  
